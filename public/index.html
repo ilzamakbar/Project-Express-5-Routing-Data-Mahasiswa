@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Aplikasi Routing Express 5 - Data Mahasiswa</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 30px;
+                line-height: 1.6;
+            }
+            h1,
+            h2 {
+                color: #333;
+            }
+            .card {
+                background: #f4f4f4;
+                padding: 15px;
+                margin-bottom: 10px;
+                border-radius: 5px;
+            }
+            .form-group {
+                margin-bottom: 10px;
+            }
+            button,
+            input {
+                padding: 8px;
+                margin-right: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Data Mahasiswa</h1>
+
+        <h2>Tambah Mahasiswa</h2>
+        <div class="form-group">
+            <input type="text" id="nim" placeholder="NIM">
+            <input type="text" id="nama" placeholder="Nama">
+            <input type="text" id="prodi" placeholder="Prodi">
+            <button onclick="tambahData()">Simpan</button>
+        </div>
+
+        <h2>Cari & Filter Data</h2>
+        <div class="form-group">
+            <input type="text" id="keyword" placeholder="Kata kunci nama/NIM...">
+            <button onclick="loadData()">Cari (Query Param)</button>
+            <button onclick="resetData()">Reset</button>
+        </div>
+
+        <h2>Daftar Mahasiswa</h2>
+        <div id="dataList"></div>
+
+        <script>
+            const API_URL = "/api/data";
+
+            async function loadData() {
+                const keyword = document
+                    .getElementById("keyword")
+                    .value;
+                let url = API_URL;
+                if (keyword) {
+                    url += `?keyword=${encodeURIComponent(keyword)}`;
+                }
+
+                const res = await fetch(url);
+                const result = await res.json();
+
+                const container = document.getElementById("dataList");
+                container.innerHTML = "";
+
+                if (result.data.length === 0) {
+                    container.innerHTML = "<p>Data tidak ditemukan.</p>";
+                    return;
+                }
+
+                result
+                    .data
+                    .forEach(item => {
+                        container.innerHTML += `
+          <div class="card">
+            <strong>ID: ${item.id}</strong> | NIM: ${item.nim} | Nama: ${item.nama} | Prodi: ${item.prodi}
+            <br>
+            <a href="${API_URL}/${item.id}" target="_blank">Lihat Detail JSON (/api/data/${item.id})</a>
+          </div>
+        `;
+                    });
+            }
+
+            async function tambahData() {
+                const nim = document
+                    .getElementById("nim")
+                    .value;
+                const nama = document
+                    .getElementById("nama")
+                    .value;
+                const prodi = document
+                    .getElementById("prodi")
+                    .value;
+
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({nim, nama, prodi})
+                });
+
+                const result = await res.json();
+                alert(result.message || "Proses selesai");
+
+                document
+                    .getElementById("nim")
+                    .value = "";
+                document
+                    .getElementById("nama")
+                    .value = "";
+                document
+                    .getElementById("prodi")
+                    .value = "";
+                loadData();
+            }
+
+            function resetData() {
+                document
+                    .getElementById("keyword")
+                    .value = "";
+                loadData();
+            }
+
+            loadData();
+        </script>
+    </body>
+</html>
